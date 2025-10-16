@@ -1,0 +1,47 @@
+# Coolify Deployment Configuration
+apiVersion: v1
+name: github-uploader
+type: docker
+
+services:
+  - name: github-uploader
+    image: github-uploader:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    envFile: .env
+    healthcheck:
+      path: /health
+      port: 3000
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    resources:
+      limits:
+        cpus: "0.5"
+        memory: "256M"
+      reservations:
+        cpus: "0.25"
+        memory: "128M"
+    restart: unless-stopped
+    volumes:
+      - ./uploads:/app/uploads
+
+# Alternative Nixpacks configuration
+nixpacks:
+  phases:
+    setup:
+      - npm ci
+    build:
+      - echo "Build complete"
+    start:
+      cmd: npm start
+  staticAssets:
+    - index.html
+    - style.css
+    - script.js
